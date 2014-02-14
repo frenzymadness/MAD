@@ -6,6 +6,20 @@ Created on Fri Feb 14 12:13:48 2014
 @author: balhar
 """
 
+"""
+TODO:
+- Dodelat dalsi tlacitko pro novy start spamfiltru
+    rozliseni mezi novym startem a uceni dalsi db
+- Napojit tlacitka na funkce
+- Do funkci dopsat gtk handlery pro disable prvku
+    jako je stopwords po inicializaci filtru
+- Prepis classy spamfiltru pro samostatne fungovani
+- Import samostatne classy smapfiltru a jeji predani gtk jako parametr
+- Pridat k funkcnim tlacitek funkce spamfiltru
+- testovani funkcnosti
+- Moznost testovani samostatneho souboru pomoci viceradkoveho inputu
+"""
+
 try:
     import pygtk
     import gtk
