@@ -31,91 +31,15 @@ except:
     sys.exit(1)
 
 
-# Uvodni funkce pro trenink spamfiltru - vezme slozky a preda je dal
-def train(spam, source='emaily'):
-    curdir = os.path.dirname(__file__)
-
-    # slozky s dokumenty
-    spam_dir = os.path.join(curdir, source, 'spam')
-    ham_dir = os.path.join(curdir, source, 'ham')
-
-    # nauceni se spamum
-    train_spamfilter(spam, spam_dir, 'spam')
-
-    # nauceni se normalnich dokumentu
-    train_spamfilter(spam, ham_dir, 'ham')
-
-
-# samotna funkce pro trenovani jednotlivych kategorii
-def train_spamfilter(spam, path, category):
-    for filename in os.listdir(path):
-        with open(os.path.join(path, filename)) as fh:
-            contents = fh.read()
-
-        # vytazeni slov z obsahu dokumentu
-        words = extract_words(contents)
-
-        # nauceni spamfiltru a asociace se skupinama
-        spam.train(words, [category])
-
-
-# extrakce slov z dokumentu
-def extract_words(cont, min_len=2, max_len=20):
-    # extrakce slov z dokumentu o zadane minimalni a maximalni delce
-    # nacteme stop slova ze souboru
-    fh = open('stopwords.txt', 'r')
-    stopwords = fh.read()
-
-    tmp = []
-
-    # pokud je aktualni slovo ve stop slovech, preskocime jej
-    for w in cont.lower().split():
-        if w in stopwords:
-            continue
-        wlen = len(w)
-        if wlen > min_len and wlen < max_len:
-            tmp.append(w)
-    return tmp
-
-
-# test cele slozky proti naucenym pravidlum
-def test(spam, source='emaily2'):
-    curdir = os.path.dirname(__file__)
-
-    # slozky se zpravami
-    spam_dir = os.path.join(curdir, source, 'spam')
-    ham_dir = os.path.join(curdir, source, 'ham')
-
-    correct = total = 0
-
-    for path, category in ((spam_dir, 'spam'), (ham_dir, 'ham')):
-        for filename in os.listdir(path):
-            with open(os.path.join(path, filename)) as fh:
-                contents = fh.read()
-
-            # extrakce slov z dokumentu
-            words = extract_words(contents)
-
-            results = spam.filter_spam(words)
-
-            print results
-
-            if results[0][0] == category:
-                correct += 1
-            total += 1
-
-    pct = 100 * (float(correct) / total)
-    print '[%s]: zpracovano %s dokumentu, %0.2f%% uspesnost' % (source, total, pct)
-
-
 class Gui():
 
-    def __init__(self, spamfilter=None):
+    def __init__(self, spam):
         # basic configuration
         self.win = gtk.Window()
         self.win.set_title("Bayes SpamFilter")
         self.win.set_border_width(10)
         self.win.connect("destroy", gtk.main_quit)
+        self.spam = spam
 
         # Prvky pro vykresleni
         self.label_learn = gtk.Label("Naučit spamfiltr pravidla")
@@ -154,6 +78,80 @@ class Gui():
         self.win.add(self.table_layout)
         self.win.show_all()
 
+    # Uvodni funkce pro trenink spamfiltru - vezme slozky a preda je dal
+    def train(self, spam, source='db1'):
+        curdir = os.path.dirname(__file__)
+
+        # slozky s dokumenty
+        spam_dir = os.path.join(curdir, source, 'spam')
+        ham_dir = os.path.join(curdir, source, 'ham')
+
+        # nauceni se spamum
+        self.train_spamfilter(spam, spam_dir, 'spam')
+
+        # nauceni se normalnich dokumentu
+        self.train_spamfilter(spam, ham_dir, 'ham')
+
+    # samotna funkce pro trenovani jednotlivych kategorii
+    def train_spamfilter(self, spam, path, category):
+        for filename in os.listdir(path):
+            with open(os.path.join(path, filename)) as fh:
+                contents = fh.read()
+
+            # vytazeni slov z obsahu dokumentu
+            words = self.extract_words(contents)
+
+            # nauceni spamfiltru a asociace se skupinama
+            self.spam.train(words, [category])
+
+    # extrakce slov z dokumentu
+    def extract_words(self, cont, min_len=2, max_len=20):
+        # extrakce slov z dokumentu o zadane minimalni a maximalni delce
+        # nacteme stop slova ze souboru
+        fh = open('stopwords.txt', 'r')
+        stopwords = fh.read()
+
+        tmp = []
+
+        # pokud je aktualni slovo ve stop slovech, preskocime jej
+        for w in cont.lower().split():
+            if w in stopwords:
+                continue
+            wlen = len(w)
+            if wlen > min_len and wlen < max_len:
+                tmp.append(w)
+        return tmp
+
+    # test cele slozky proti naucenym pravidlum
+    def test(self, spam, source='emaily2'):
+        curdir = os.path.dirname(__file__)
+
+        # slozky se zpravami
+        spam_dir = os.path.join(curdir, source, 'spam')
+        ham_dir = os.path.join(curdir, source, 'ham')
+
+        correct = total = 0
+
+        for path, category in ((spam_dir, 'spam'), (ham_dir, 'ham')):
+            for filename in os.listdir(path):
+                with open(os.path.join(path, filename)) as fh:
+                    contents = fh.read()
+
+                # extrakce slov z dokumentu
+                words = self.extract_words(contents)
+
+                results = self.spam.filter_spam(words)
+
+                print results
+
+                if results[0][0] == category:
+                    correct += 1
+                total += 1
+
+        pct = 100 * (float(correct) / total)
+        print '[%s]: zpracovano %s dokumentu, %0.2f%% uspesnost' % (source, total, pct)
+
 if __name__ == '__main__':
-    application = Gui()
+    spam = Spamfilter()
+    application = Gui(spam)
     gtk.main()
