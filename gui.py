@@ -57,8 +57,10 @@ class Gui():
             self.test_database_menu.append_text(database)
         self.learn_database_menu.set_active(0)
         self.test_database_menu.set_active(0)
-        # Napojeni vytvprenych prvku na funkce
 
+        # Napojeni vytvprenych prvku na funkce
+        self.button_learn.connect('clicked', self.train, self.learn_database_menu.get_active_text())
+        self.button_test.connect('clicked', self.test, self.test_database_menu.get_active_text())
         # layout
         self.table_layout = gtk.Table(4, 3, False)
         self.table_layout.set_row_spacings(20)
@@ -79,7 +81,7 @@ class Gui():
         self.win.show_all()
 
     # Uvodni funkce pro trenink spamfiltru - vezme slozky a preda je dal
-    def train(self, spam, source='db1'):
+    def train(self, widget, source='db1'):
         curdir = os.path.dirname(__file__)
 
         # slozky s dokumenty
@@ -87,13 +89,13 @@ class Gui():
         ham_dir = os.path.join(curdir, source, 'ham')
 
         # nauceni se spamum
-        self.train_spamfilter(spam, spam_dir, 'spam')
+        self.train_spamfilter(spam_dir, 'spam')
 
         # nauceni se normalnich dokumentu
-        self.train_spamfilter(spam, ham_dir, 'ham')
+        self.train_spamfilter(ham_dir, 'ham')
 
     # samotna funkce pro trenovani jednotlivych kategorii
-    def train_spamfilter(self, spam, path, category):
+    def train_spamfilter(self, path, category):
         for filename in os.listdir(path):
             with open(os.path.join(path, filename)) as fh:
                 contents = fh.read()
@@ -123,7 +125,7 @@ class Gui():
         return tmp
 
     # test cele slozky proti naucenym pravidlum
-    def test(self, spam, source='emaily2'):
+    def test(self, widget, spam, source='db1'):
         curdir = os.path.dirname(__file__)
 
         # slozky se zpravami
