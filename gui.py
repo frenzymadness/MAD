@@ -30,8 +30,7 @@ class Gui():
         # Prvky pro vykresleni
         self.label_learn = gtk.Label("Naučit spamfiltr pravidla")
         self.label_test = gtk.Label("Otestovat spamfiltr")
-        self.label_result_label = gtk.Label("Výsledek: ")
-        self.label_result = gtk.Label("0.0 %")
+        self.label_log_label = gtk.Label("Log:")
 
         self.button_learn = gtk.Button("Incializace")
         self.button_test = gtk.Button("Test")
@@ -44,11 +43,13 @@ class Gui():
         self.learn_database_menu.set_active(0)
         self.test_database_menu.set_active(0)
 
+        self.text_log = gtk.TextView()
+
         # Napojeni vytvprenych prvku na funkce
         self.button_learn.connect('clicked', self.train, self.learn_database_menu.get_active_text())
         self.button_test.connect('clicked', self.test, self.test_database_menu.get_active_text())
         # layout
-        self.table_layout = gtk.Table(4, 3, False)
+        self.table_layout = gtk.Table(15, 2, False)
         self.table_layout.set_row_spacings(20)
         self.table_layout.set_col_spacings(20)
 
@@ -59,8 +60,8 @@ class Gui():
         self.table_layout.attach(self.test_database_menu, 1, 2, 1, 2)
         self.table_layout.attach(self.button_learn, 0, 1, 2, 3)
         self.table_layout.attach(self.button_test, 1, 2, 2, 3)
-        self.table_layout.attach(self.label_result_label, 2, 3, 0, 1)
-        self.table_layout.attach(self.label_result, 2, 3, 1, 2)
+        self.table_layout.attach(self.label_log_label, 0, 3, 3, 4)
+        self.table_layout.attach(self.text_log, 0, 3, 4, 15)
 
         # Pridani layoutu do okna a jeho zobrazeni
         self.win.add(self.table_layout)
@@ -79,6 +80,7 @@ class Gui():
 
         # nauceni se normalnich dokumentu
         self.train_spamfilter(ham_dir, 'ham')
+        self.log('Train', 'Databaze rozsirena o %s' % (source))
 
     # samotna funkce pro trenovani jednotlivych kategorii
     def train_spamfilter(self, path, category):
@@ -137,7 +139,13 @@ class Gui():
                 total += 1
 
         pct = 100 * (float(correct) / total)
-        print '[%s]: zpracovano %s dokumentu, %0.2f%% uspesnost' % (source, total, pct)
+        self.log('Result', 'zpracovano %s dokumentu, %0.2f%% uspesnost' % (total, pct))
+        #print '[%s]: zpracovano %s dokumentu, %0.2f%% uspesnost' % (source, total, pct)
+
+    def log(self, type, msg):
+        buf = self.text_log.get_buffer()
+        buf.insert(buf.get_end_iter(), '[%s]: %s\n' % (type, msg))
+        self.text_log.scroll_to_iter(buf.get_end_iter(), 0)
 
 if __name__ == '__main__':
     spam = Spamfilter()
