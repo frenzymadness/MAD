@@ -46,8 +46,8 @@ class Gui():
         self.text_log = gtk.TextView()
 
         # Napojeni vytvprenych prvku na funkce
-        self.button_learn.connect('clicked', self.train, self.learn_database_menu.get_active_text())
-        self.button_test.connect('clicked', self.test, self.test_database_menu.get_active_text())
+        self.button_learn.connect('clicked', self.train)
+        self.button_test.connect('clicked', self.test)
         # layout
         self.table_layout = gtk.Table(15, 2, False)
         self.table_layout.set_row_spacings(20)
@@ -68,7 +68,8 @@ class Gui():
         self.win.show_all()
 
     # Uvodni funkce pro trenink spamfiltru - vezme slozky a preda je dal
-    def train(self, widget, source='db1'):
+    def train(self, widget):
+        source = self.learn_database_menu.get_active_text()
         curdir = os.path.dirname(__file__)
 
         # slozky s dokumenty
@@ -113,7 +114,8 @@ class Gui():
         return tmp
 
     # test cele slozky proti naucenym pravidlum
-    def test(self, widget, spam, source='db1'):
+    def test(self, widget):
+        source = self.test_database_menu.get_active_text()
         curdir = os.path.dirname(__file__)
 
         # slozky se zpravami
@@ -132,7 +134,7 @@ class Gui():
 
                 results = self.spam.filter_spam(words)
 
-                print results
+                #print results
 
                 if results[0][0] == category:
                     correct += 1
